@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Times table race</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: #12163A; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
+  h1 { color: #FFFFFF; font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  .sub { color: #9AA3D4; font-size: 14px; margin-bottom: 24px; }
+  .question { font-size: 40px; font-weight: 700; color: #FFFFFF; margin-bottom: 24px; }
+  .choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 340px; }
+  .choice { min-height: 64px; font-size: 24px; font-weight: 700; color: #FFFFFF; background: #4E8CFF; border: none; border-radius: 16px; box-shadow: 0 4px 0 #2A5FD9; }
+  .choice:active { transform: translateY(2px); box-shadow: 0 2px 0 #2A5FD9; }
+  .hint { min-height: 22px; color: #FFD23F; font-weight: 600; margin-top: 16px; }
+  .progress-dots { display: flex; gap: 6px; margin-top: 28px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #3A4080; }
+  .dot.done { background: #FFD23F; }
+  .celebrate { text-align: center; color: #FFFFFF; }
+  .celebrate .star { font-size: 64px; }
+  .done-btn { margin-top: 24px; background: #FFD23F; color: #4A2A00; border: none; border-radius: 999px; padding: 14px 32px; font-size: 17px; font-weight: 700; }
+</style>
+</head>
+<body>
+<div id="game"></div>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const table = parseInt(params.get('table') || '3', 10);
+  const childId = params.get('childId') || '';
+  const lessonId = params.get('lessonId') || `times-tables-${table}`;
+  const subject = params.get('subject') || 'maths';
+  const saveKey = `progress:${childId}:${lessonId}`;
+  const TOTAL = 6;
+
+  let questions = [];
+  for (let i = 1; i <= TOTAL; i++) questions.push(i);
+  // Shuffle deterministically-ish per session
+  questions = questions.sort(() => Math.random() - 0.5);
+
+  let state = { index: 0, correct: 0 };
+  try {
+    const saved = JSON.parse(localStorage.getItem(saveKey) || 'null');
+    if (saved && typeof saved.index === 'number') state = saved;
+  } catch (e) {}
+
+  function save() { localStorage.setItem(saveKey, JSON.stringify(state)); }
+  setInterval(save, 5000);
+
+  function render() {
+    const game = document.getElementById('game');
+    if (state.index >= TOTAL) {
+      localStorage.removeItem(saveKey);
+      game.innerHTML = `
+        <div class="celebrate">
+          <div class="star">⭐</div>
+          <h1>Great job!</h1>
+          <div class="sub">You finished the ${table}x table race</div>
+          <button class="done-btn" id="doneBtn">Done</button>
+        </div>
+      `;
+      document.getElementById('doneBtn').addEventListener('click', finish);
+      return;
+    }
+    const n = questions[state.index];
+    const answer = table * n;
+    const choices = new Set([answer]);
+    while (choices.size < 4) {
+      const wrong = answer + (Math.floor(Math.random() * 10) - 5);
+      if (wrong > 0 && wrong !== answer) choices.add(wrong);
+    }
+    const shuffled = Array.from(choices).sort(() => Math.random() - 0.5);
+
+    let dots = '';
+    for (let i = 0; i < TOTAL; i++) dots += `<div class="dot ${i < state.index ? 'done' : ''}"></div>`;
+
+    game.innerHTML = `
+      <h1>${table}x table race</h1>
+      <div class="sub">Question ${state.index + 1} of ${TOTAL}</div>
+      <div class="question">${table} &times; ${n} = ?</div>
+      <div class="choices">${shuffled.map(c => `<button class="choice" data-val="${c}">${c}</button>`).join('')}</div>
+      <div class="hint" id="hint"></div>
+      <div class="progress-dots">${dots}</div>
+    `;
+    document.querySelectorAll('.choice').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (parseInt(btn.dataset.val, 10) === answer) {
+          state.index++;
+          state.correct++;
+          save();
+          render();
+        } else {
+          document.getElementById('hint').textContent = 'Try again!';
+        }
+      });
+    });
+  }
+
+  function finish() {
+    const payload = { type: 'activityComplete', id: lessonId, childId, subject, score: state.correct };
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(payload, '*');
+    } else {
+      localStorage.setItem('fs:pendingComplete', JSON.stringify({ id: lessonId, childId, subject }));
+      window.location.href = `../index.html#/kid/${childId}`;
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+/* Space theme (Charlie) */
+body.theme-space {
+  --bg: #12163A;
+  --panel: #1B2050;
+  --header-text: #FFFFFF;
+  --header-sub: #9AA3D4;
+  --panel-heading: #D6DBFF;
+  --tile-radius: 14px;
+  --panel-radius: 28px 28px 0 0;
+  --link-border: #3A4080;
+  --link-text: #9AA3D4;
+  --star-fill: #FFD23F;
+  --gate-bg: rgba(255,255,255,0.1);
+  --gate-icon: #FFFFFF;
+  background: var(--bg);
+}
+
+.theme-space .app-header { position: relative; overflow: hidden; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .theme-space .mascot { animation: float 3s ease-in-out infinite; }
+  .theme-space .starfield circle { animation: twinkle 2.2s ease-in-out infinite; }
+}
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }

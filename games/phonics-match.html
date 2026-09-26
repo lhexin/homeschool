@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phonics match</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: #FF8FC3; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
+  h1 { color: #7A1E4D; font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  .sub { color: #B0407F; font-size: 14px; margin-bottom: 8px; text-align: center; }
+  .listen-btn { background: #FFFFFF; border: none; border-radius: 999px; padding: 16px 32px; font-size: 40px; margin: 16px 0 24px; box-shadow: 0 4px 0 #D9A9C2; }
+  .choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; width: 100%; max-width: 320px; }
+  .choice { min-height: 84px; font-size: 44px; font-weight: 700; color: #FFFFFF; border: none; border-radius: 28px; }
+  .c0 { background: #4EC4FF; box-shadow: 0 5px 0 #1E93D9; }
+  .c1 { background: #7FE3C0; box-shadow: 0 5px 0 #37B389; }
+  .c2 { background: #FF6FA8; box-shadow: 0 5px 0 #C43D74; }
+  .c3 { background: #C9A8FF; box-shadow: 0 5px 0 #8B5FD9; }
+  .hint { min-height: 22px; color: #7A1E4D; font-weight: 700; margin-top: 16px; }
+  .progress-dots { display: flex; gap: 6px; margin-top: 20px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #FFD8E9; }
+  .dot.done { background: #FF6FA8; }
+  .celebrate { text-align: center; color: #7A1E4D; }
+  .celebrate .star { font-size: 64px; }
+  .done-btn { margin-top: 24px; background: #FFD873; color: #5C3900; border: none; border-radius: 999px; padding: 14px 32px; font-size: 17px; font-weight: 700; }
+</style>
+</head>
+<body>
+<div id="game"></div>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const setName = params.get('set') || 'satp';
+  const childId = params.get('childId') || '';
+  const lessonId = params.get('lessonId') || `phonics-match-${setName}`;
+  const subject = params.get('subject') || 'phonics';
+  const saveKey = `progress:${childId}:${lessonId}`;
+
+  const LETTER_SETS = { satp: ['S', 'A', 'T', 'P'] };
+  const letters = LETTER_SETS[setName] || LETTER_SETS.satp;
+  const TOTAL = letters.length;
+
+  let order = letters.slice().sort(() => Math.random() - 0.5);
+  let state = { index: 0 };
+  try {
+    const saved = JSON.parse(localStorage.getItem(saveKey) || 'null');
+    if (saved && typeof saved.index === 'number') state = saved;
+  } catch (e) {}
+
+  function save() { localStorage.setItem(saveKey, JSON.stringify(state)); }
+  setInterval(save, 5000);
+
+  function speak(letter) {
+    if (!('speechSynthesis' in window)) return;
+    const utter = new SpeechSynthesisUtterance(letter.toLowerCase());
+    utter.rate = 0.8;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utter);
+  }
+
+  function render() {
+    const game = document.getElementById('game');
+    if (state.index >= TOTAL) {
+      localStorage.removeItem(saveKey);
+      game.innerHTML = `
+        <div class="celebrate">
+          <div class="star">⭐</div>
+          <h1>Well done!</h1>
+          <div class="sub">You matched every letter sound</div>
+          <button class="done-btn" id="doneBtn">Done</button>
+        </div>
+      `;
+      document.getElementById('doneBtn').addEventListener('click', finish);
+      return;
+    }
+    const target = order[state.index];
+    const choices = letters.slice().sort(() => Math.random() - 0.5);
+    let dots = '';
+    for (let i = 0; i < TOTAL; i++) dots += `<div class="dot ${i < state.index ? 'done' : ''}"></div>`;
+
+    game.innerHTML = `
+      <h1>Which letter says this sound?</h1>
+      <div class="sub">Tap the speaker, then tap the matching letter</div>
+      <button class="listen-btn" id="listenBtn" aria-label="Play sound">🔊</button>
+      <div class="choices">${choices.map((l, i) => `<button class="choice c${i % 4}" data-val="${l}">${l}</button>`).join('')}</div>
+      <div class="hint" id="hint"></div>
+      <div class="progress-dots">${dots}</div>
+    `;
+    document.getElementById('listenBtn').addEventListener('click', () => speak(target));
+    speak(target);
+    document.querySelectorAll('.choice').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.val === target) {
+          state.index++;
+          save();
+          render();
+        } else {
+          document.getElementById('hint').textContent = 'Try again!';
+          speak(target);
+        }
+      });
+    });
+  }
+
+  function finish() {
+    const payload = { type: 'activityComplete', id: lessonId, childId, subject, score: TOTAL };
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(payload, '*');
+    } else {
+      localStorage.setItem('fs:pendingComplete', JSON.stringify({ id: lessonId, childId, subject }));
+      window.location.href = `../index.html#/kid/${childId}`;
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>

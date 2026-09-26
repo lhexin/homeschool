@@ -1,0 +1,13 @@
+[
+  { "id": "reading", "label": "Reading", "forChild": ["charlie"], "color": "#3DBE8B", "icon": "book", "stretch": true },
+  { "id": "maths", "label": "Maths", "forChild": ["charlie"], "color": "#E6483C", "icon": "plus", "stretch": true },
+  { "id": "science", "label": "Science", "forChild": ["charlie"], "color": "#FF6B4A", "icon": "flask", "stretch": false },
+  { "id": "mandarin", "label": "Mandarin", "forChild": ["charlie", "naomi"], "color": "#FF8A3D", "icon": "speech", "stretch": false },
+  { "id": "entrepreneurship", "label": "My Business", "forChild": ["charlie"], "color": "#FFB020", "icon": "coin", "stretch": false },
+  { "id": "piano", "label": "Piano", "forChild": ["charlie", "naomi"], "color": "#A85CFF", "icon": "music", "stretch": false },
+  { "id": "theatre", "label": "Theatre", "forChild": ["charlie"], "color": "#FF6BA8", "icon": "mask", "stretch": false },
+  { "id": "ballet", "label": "Ballet", "forChild": ["naomi"], "color": "#FF6FA8", "icon": "ballet", "stretch": false },
+  { "id": "life-skills", "label": "Being Kind", "forChild": ["charlie", "naomi"], "color": "#FFD873", "icon": "heart", "stretch": false },
+  { "id": "phonics", "label": "Phonics", "forChild": ["naomi"], "color": "#4EC4FF", "icon": "book", "stretch": false },
+  { "id": "games", "label": "Game time", "forChild": ["charlie"], "color": "#A85CFF", "icon": "controller", "stretch": false }
+]

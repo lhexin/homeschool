@@ -1,0 +1,99 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+button { font-family: inherit; cursor: pointer; border: none; }
+img, svg { display: block; }
+
+#app { min-height: 100vh; display: flex; flex-direction: column; transition: background 0.2s; }
+
+/* ---- Header ---- */
+.app-header { padding: 24px 22px 0; display: flex; align-items: flex-start; gap: 12px; }
+.mascot { width: 64px; height: 64px; flex-shrink: 0; }
+.greeting { padding-top: 8px; }
+.greeting .name { font-size: 24px; font-weight: 600; color: var(--header-text); }
+.greeting .sub { font-size: 15px; font-weight: 600; color: var(--header-sub); margin-top: 2px; }
+
+.gate-btn {
+  position: absolute; top: 20px; right: 18px; width: 44px; height: 44px;
+  border-radius: 12px; background: var(--gate-bg);
+  display: flex; align-items: center; justify-content: center; padding: 0;
+}
+.gate-btn svg { stroke: var(--gate-icon); }
+
+/* ---- Content panel ---- */
+.panel {
+  position: relative; flex-grow: 1; background: var(--panel);
+  margin-top: 20px; border-radius: var(--panel-radius);
+  padding: 24px 18px 0; display: flex; flex-direction: column; overflow: hidden;
+}
+.panel-heading { font-size: 15px; font-weight: 700; color: var(--panel-heading); padding-left: 4px; }
+
+/* ---- Featured tile ---- */
+.featured-tile {
+  border-radius: var(--tile-radius); padding: 18px 20px; display: flex;
+  align-items: center; gap: 14px; text-align: left; width: 100%; margin-top: 4px;
+}
+.featured-icon {
+  width: 52px; height: 52px; border-radius: 10px; background: rgba(0,0,0,0.15);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.featured-label { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.85; }
+.featured-title { font-size: 18px; font-weight: 700; margin-top: 2px; }
+
+/* ---- Subject grid ---- */
+.subject-grid {
+  margin-top: 12px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;
+}
+.subject-tile {
+  border-radius: var(--tile-radius); padding: 18px; display: flex; flex-direction: column;
+  gap: 8px; text-align: left; color: #FFFFFF; width: 100%;
+}
+.theme-unicorn .subject-tile { align-items: center; padding: 20px 14px; gap: 8px; }
+.subject-title { font-size: 17px; font-weight: 700; }
+.subject-sub { font-size: 12px; font-weight: 700; opacity: 0.85; }
+.star-row { display: flex; gap: 5px; }
+
+/* ---- Badge shelf ---- */
+.badge-shelf { margin-top: 20px; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.badge-chip {
+  width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0; padding: 0; position: relative;
+}
+.badge-chip.locked { opacity: 0.55; }
+
+/* ---- Switch link ---- */
+.switch-link { margin-top: auto; padding: 14px 0 20px; display: flex; justify-content: center; }
+.switch-btn {
+  background: transparent; border: 2px solid var(--link-border); border-radius: 999px;
+  padding: 12px 20px; min-height: 44px; font-size: 13px; font-weight: 700; color: var(--link-text);
+}
+.theme-space .switch-btn { border-width: 1px; }
+
+/* ---- Celebration overlay ---- */
+.celebrate-overlay {
+  position: fixed; inset: 0; background: rgba(20, 20, 30, 0.72); z-index: 50;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+  color: #FFFFFF; text-align: center; padding: 24px;
+}
+.celebrate-overlay .badge-big { width: 96px; height: 96px; border-radius: 50%; }
+.celebrate-overlay h2 { font-size: 22px; font-weight: 600; margin: 0; }
+.celebrate-overlay button {
+  background: #FFD23F; color: #4A2A00; border-radius: 999px; padding: 10px 24px;
+  font-size: 15px; font-weight: 700;
+}
+
+/* ---- Parent dashboard ---- */
+.parent-view { background: #FBF6EC; min-height: 100vh; padding: 20px; font-family: -apple-system, sans-serif; }
+.parent-view h1 { font-size: 20px; color: #3D3A34; }
+.progress-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+.progress-bar-track { flex-grow: 1; height: 8px; border-radius: 4px; background: #E4DFD0; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 4px; }
+.award-btn {
+  background: #FFFFFF; border: 1px solid #E4DFD0; border-radius: 8px; padding: 6px 12px;
+  font-size: 13px; font-weight: 600; color: #3D3A34;
+}
+.award-btn.awarded { background: #3DBE8B; color: #FFFFFF; border-color: #1E8A5F; }
+.back-link { display: inline-block; margin-bottom: 16px; font-size: 14px; color: #6B6656; }
+
+@media (min-width: 600px) {
+  #app { max-width: 480px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,0.08); }
+}

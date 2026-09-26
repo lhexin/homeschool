@@ -1,0 +1,23 @@
+/* Unicorn theme (Naomi) */
+body.theme-unicorn {
+  --bg: #FF8FC3;
+  --panel: #FFF6FA;
+  --header-text: #7A1E4D;
+  --header-sub: #B0407F;
+  --panel-heading: #7A1E4D;
+  --tile-radius: 28px;
+  --panel-radius: 32px 32px 0 0;
+  --link-border: #FFD8E9;
+  --link-text: #B0407F;
+  --star-fill: #FFD873;
+  --gate-bg: rgba(255,255,255,0.35);
+  --gate-icon: #7A1E4D;
+  background: var(--bg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .theme-unicorn .mascot { animation: bob 2.6s ease-in-out infinite; }
+  .theme-unicorn .sparkle { animation: sparkle 2s ease-in-out infinite; }
+}
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-7px) rotate(2deg); } }
+@keyframes sparkle { 0%, 100% { opacity: 0.4; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } }

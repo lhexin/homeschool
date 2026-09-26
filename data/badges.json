@@ -1,0 +1,11 @@
+[
+  { "id": "first-steps", "label": "First Steps", "icon": "star", "rule": { "type": "completeCount", "count": 1 } },
+  { "id": "reading-streak-5", "label": "Bookworm", "icon": "book", "rule": { "type": "subjectCompleteCount", "subject": "reading", "count": 5 } },
+  { "id": "mandarin-beginner", "label": "Ni Hao!", "icon": "speech", "rule": { "type": "subjectCompleteCount", "subject": "mandarin", "count": 3 } },
+  { "id": "young-entrepreneur", "label": "Young Entrepreneur", "icon": "coin", "parentAwarded": true },
+  { "id": "stage-star", "label": "Stage Star", "icon": "mask", "parentAwarded": true },
+  { "id": "prima-ballerina", "label": "Prima Ballerina", "icon": "ballet", "parentAwarded": true },
+  { "id": "piano-page-turner", "label": "Page Turner", "icon": "music", "rule": { "type": "subjectCompleteCount", "subject": "piano", "count": 10 } },
+  { "id": "kind-heart", "label": "Kind Heart", "icon": "heart", "parentAwarded": true },
+  { "id": "week-streak", "label": "7-Day Streak", "icon": "flame", "rule": { "type": "activeDayStreak", "days": 7 } }
+]

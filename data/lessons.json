@@ -1,0 +1,119 @@
+[
+  {
+    "id": "volcanoes-01",
+    "subject": "science",
+    "title": "Volcanoes: how they erupt",
+    "forChild": ["charlie"],
+    "type": "video",
+    "url": "https://www.youtube.com/embed/BsWme0yUnfw",
+    "addedOn": "2026-09-26"
+  },
+  {
+    "id": "times-tables-3",
+    "subject": "maths",
+    "title": "3x table race",
+    "forChild": ["charlie"],
+    "type": "game",
+    "gameFile": "games/times-tables.html?table=3",
+    "addedOn": "2026-09-26"
+  },
+  {
+    "id": "times-tables-4",
+    "subject": "maths",
+    "title": "4x table race",
+    "forChild": ["charlie"],
+    "type": "game",
+    "gameFile": "games/times-tables.html?table=4",
+    "addedOn": "2026-09-26"
+  },
+  {
+    "id": "reading-cat-hat",
+    "subject": "reading",
+    "title": "The Cat in the Hat",
+    "forChild": ["charlie"],
+    "type": "video",
+    "url": "https://www.youtube.com/embed/2sB9WLKG9uM",
+    "addedOn": "2026-09-26"
+  },
+  {
+    "id": "mandarin-numbers-1",
+    "subject": "mandarin",
+    "title": "Counting 1-10 in Mandarin",
+    "forChild": ["charlie", "naomi"],
+    "type": "video",
+    "url": "https://www.youtube.com/embed/W2sIkFTV_Ao",
+    "addedOn": "2026-09-26"
+  },
+  {
+    "id": "half-moon-wk1",
+    "subject": "theatre",
+    "title": "Half Moon: term 1, week 1",
+    "forChild": ["charlie"],
+    "type": "milestone",
+    "note": "Improvisation games and voice warm-ups",
+    "addedOn": "2026-09-26"
+  },
+  {
+    "id": "book-sold-first",
+    "subject": "entrepreneurship",
+    "title": "Sold my first book!",
+    "forChild": ["charlie"],
+    "type": "milestone",
+    "note": "Sold to a neighbour for £2",
+    "addedOn": "2026-09-26"
+  },
+  {
+    "id": "piano-simply-l1",
+    "subject": "piano",
+    "title": "Simply Piano: Lesson 1",
+    "forChild": ["charlie", "naomi"],
+    "type": "milestone",
+    "note": "Finger positions and first notes",
+    "addedOn": "2026-09-26"
+  },
+  {
+    "id": "piano-book2-p1",
+    "subject": "piano",
+    "title": "Easiest Piano Course Book 2: page 1",
+    "forChild": ["charlie"],
+    "type": "milestone",
+    "note": "",
+    "addedOn": "2026-09-26"
+  },
+  {
+    "id": "ballet-grade1-wk1",
+    "subject": "ballet",
+    "title": "Ballet Grade 1: week 1",
+    "forChild": ["naomi"],
+    "type": "milestone",
+    "note": "First position and plié",
+    "addedOn": "2026-09-26"
+  },
+  {
+    "id": "phonics-match-s",
+    "subject": "phonics",
+    "title": "Letter sounds: S, A, T, P",
+    "forChild": ["naomi"],
+    "type": "game",
+    "gameFile": "games/phonics-match.html?set=satp",
+    "addedOn": "2026-09-26"
+  },
+  {
+    "id": "emotions-video-1",
+    "subject": "life-skills",
+    "title": "Naming my feelings",
+    "forChild": ["charlie", "naomi"],
+    "type": "video",
+    "url": "https://www.youtube.com/embed/vHb0EOTBpaA",
+    "addedOn": "2026-09-26"
+  },
+  {
+    "id": "money-basics-1",
+    "subject": "life-skills",
+    "title": "Saving vs spending",
+    "forChild": ["charlie"],
+    "type": "video",
+    "url": "https://www.youtube.com/embed/hLQ9J3wLYw4",
+    "addedOn": "2026-09-26"
+  }
+]
