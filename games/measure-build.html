@@ -3,15 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Times table race</title>
+<title>Measure & build</title>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; min-height: 100vh; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: #12163A; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
   h1 { color: #FFFFFF; font-size: 20px; font-weight: 600; margin: 0 0 4px; }
-  .sub { color: #9AA3D4; font-size: 14px; margin-bottom: 24px; }
-  .question { font-size: 40px; font-weight: 700; color: #FFFFFF; margin-bottom: 24px; }
+  .sub { color: #9AA3D4; font-size: 14px; margin-bottom: 16px; }
+  .ruler-wrap { background: #FFF6FA; border-radius: 10px; padding: 16px 10px 6px; margin-bottom: 18px; }
+  .ruler { display: flex; }
+  .cm { width: 20px; height: 34px; border-left: 1px solid #999; font-size: 8px; color: #666; text-align: left; padding-left: 1px; }
+  .bar { position: relative; height: 14px; background: #4E8CFF; border-radius: 3px; margin-top: -20px; margin-bottom: 6px; }
+  .rect-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 18px; }
+  .rect { border: 3px solid #FFD873; background: rgba(255,216,115,0.15); position: relative; }
+  .rect .side-label { position: absolute; color: #FFD873; font-size: 12px; font-weight: 700; }
+  .question { font-size: 17px; font-weight: 600; color: #D6DBFF; margin-bottom: 18px; text-align: center; }
   .choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 340px; }
-  .choice { min-height: 64px; font-size: 24px; font-weight: 700; color: #FFFFFF; background: #4E8CFF; border: none; border-radius: 16px; box-shadow: 0 4px 0 #2A5FD9; }
+  .choice { min-height: 56px; font-size: 19px; font-weight: 700; color: #FFFFFF; background: #4E8CFF; border: none; border-radius: 16px; box-shadow: 0 4px 0 #2A5FD9; }
   .choice:active { transform: translateY(2px); box-shadow: 0 2px 0 #2A5FD9; }
   .hint { min-height: 22px; color: #FFD23F; font-weight: 600; margin-top: 16px; }
   .progress-dots { display: flex; gap: 6px; margin-top: 28px; }
@@ -19,29 +26,35 @@
   .dot.done { background: #FFD23F; }
   .celebrate { text-align: center; color: #FFFFFF; }
   .celebrate .star { font-size: 64px; }
-  .celebrate .time { color: #FFD23F; font-weight: 700; margin-top: 4px; }
   .done-btn { margin-top: 24px; background: #FFD23F; color: #4A2A00; border: none; border-radius: 999px; padding: 14px 32px; font-size: 17px; font-weight: 700; }
-  .timer { color: #FFD23F; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
 </style>
 </head>
 <body>
 <div id="game"></div>
 <script>
   const params = new URLSearchParams(window.location.search);
-  const table = parseInt(params.get('table') || '3', 10);
   const childId = params.get('childId') || '';
-  const lessonId = params.get('lessonId') || `times-tables-${table}`;
+  const lessonId = params.get('lessonId') || 'measure-build-1';
   const subject = params.get('subject') || 'maths';
   const saveKey = `progress:${childId}:${lessonId}`;
-  const bestKey = `fs:besttime:${childId}:${lessonId}`;
   const TOTAL = 6;
 
-  let questions = [];
-  for (let i = 1; i <= TOTAL; i++) questions.push(i);
-  // Shuffle deterministically-ish per session
-  questions = questions.sort(() => Math.random() - 0.5);
+  function makeRulerQuestion() {
+    const cm = Math.floor(Math.random() * 12) + 3; // 3-14 cm bar
+    return { kind: 'ruler', cm, answer: cm };
+  }
+  function makePerimeterQuestion() {
+    const w = Math.floor(Math.random() * 8) + 2;
+    const h = Math.floor(Math.random() * 8) + 2;
+    return { kind: 'perimeter', w, h, answer: 2 * (w + h) };
+  }
 
-  let state = { index: 0, correct: 0, startedAt: Date.now() };
+  let questions = [];
+  for (let i = 0; i < TOTAL; i++) {
+    questions.push(i % 2 === 0 ? makeRulerQuestion() : makePerimeterQuestion());
+  }
+
+  let state = { index: 0, correct: 0 };
   try {
     const saved = JSON.parse(localStorage.getItem(saveKey) || 'null');
     if (saved && typeof saved.index === 'number') state = saved;
@@ -50,61 +63,78 @@
   function save() { localStorage.setItem(saveKey, JSON.stringify(state)); }
   setInterval(save, 5000);
 
-  function bestTimeLabel() {
-    const prevBest = parseInt(localStorage.getItem(bestKey) || '0', 10);
-    return prevBest ? `Best time: ${prevBest}s` : 'Beat your time!';
+  function rulerHtml(cm) {
+    let ticks = '';
+    for (let i = 0; i <= 15; i++) ticks += `<div class="cm">${i % 5 === 0 ? i : ''}</div>`;
+    return `
+      <div class="ruler-wrap">
+        <div class="ruler">${ticks}</div>
+        <div class="bar" style="width:${cm * 20}px"></div>
+      </div>
+    `;
+  }
+
+  function rectHtml(w, h) {
+    const scale = 18;
+    return `
+      <div class="rect-wrap">
+        <div class="rect" style="width:${w * scale}px;height:${h * scale}px">
+          <span class="side-label" style="top:-18px;left:50%;transform:translateX(-50%)">${w} cm</span>
+          <span class="side-label" style="top:50%;right:-34px;transform:translateY(-50%)">${h} cm</span>
+        </div>
+      </div>
+    `;
   }
 
   function render() {
     const game = document.getElementById('game');
     if (state.index >= TOTAL) {
       localStorage.removeItem(saveKey);
-      const elapsedSec = Math.max(1, Math.round((Date.now() - state.startedAt) / 1000));
-      const prevBest = parseInt(localStorage.getItem(bestKey) || '0', 10);
-      const isNewBest = !prevBest || elapsedSec < prevBest;
-      if (isNewBest) localStorage.setItem(bestKey, String(elapsedSec));
       game.innerHTML = `
         <div class="celebrate">
           <div class="star">⭐</div>
-          <h1>Great job!</h1>
-          <div class="sub">You finished the ${table}x table race in ${elapsedSec}s</div>
-          <div class="time">${isNewBest ? 'New best time!' : `Best: ${prevBest}s`}</div>
+          <h1>Measure master!</h1>
+          <div class="sub">You solved ${TOTAL} measuring puzzles</div>
           <button class="done-btn" id="doneBtn">Done</button>
         </div>
       `;
       document.getElementById('doneBtn').addEventListener('click', finish);
       return;
     }
-    const n = questions[state.index];
-    const answer = table * n;
-    const choices = new Set([answer]);
+    const q = questions[state.index];
+    const choices = new Set([q.answer]);
     while (choices.size < 4) {
-      const wrong = answer + (Math.floor(Math.random() * 10) - 5);
-      if (wrong > 0 && wrong !== answer) choices.add(wrong);
+      const wrong = Math.max(1, q.answer + Math.floor(Math.random() * 7) - 3);
+      choices.add(wrong);
     }
     const shuffled = Array.from(choices).sort(() => Math.random() - 0.5);
 
     let dots = '';
     for (let i = 0; i < TOTAL; i++) dots += `<div class="dot ${i < state.index ? 'done' : ''}"></div>`;
 
+    const visual = q.kind === 'ruler' ? rulerHtml(q.cm) : rectHtml(q.w, q.h);
+    const questionText = q.kind === 'ruler'
+      ? 'How many cm long is the blue bar?'
+      : 'What is the perimeter of this rectangle?';
+
     game.innerHTML = `
-      <h1>${table}x table race</h1>
+      <h1>Measure & build</h1>
       <div class="sub">Question ${state.index + 1} of ${TOTAL}</div>
-      <div class="timer">${bestTimeLabel()}</div>
-      <div class="question">${table} &times; ${n} = ?</div>
-      <div class="choices">${shuffled.map(c => `<button class="choice" data-val="${c}">${c}</button>`).join('')}</div>
+      ${visual}
+      <div class="question">${questionText}</div>
+      <div class="choices">${shuffled.map(c => `<button class="choice" data-val="${c}">${c} cm</button>`).join('')}</div>
       <div class="hint" id="hint"></div>
       <div class="progress-dots">${dots}</div>
     `;
     document.querySelectorAll('.choice').forEach(btn => {
       btn.addEventListener('click', () => {
-        if (parseInt(btn.dataset.val, 10) === answer) {
+        if (parseInt(btn.dataset.val, 10) === q.answer) {
           state.index++;
           state.correct++;
           save();
           render();
         } else {
-          document.getElementById('hint').textContent = 'Try again!';
+          document.getElementById('hint').textContent = 'Count again!';
         }
       });
     });

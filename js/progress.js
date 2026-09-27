@@ -25,6 +25,11 @@ function isCompleted(childId, lessonId) {
   return getCompletedList(childId).some(c => c.lessonId === lessonId);
 }
 
+function countModuleCompleted(childId, moduleId) {
+  const moduleLessonIds = new Set(DATA.lessons.filter(l => l.module === moduleId).map(l => l.id));
+  return getCompletedList(childId).filter(c => moduleLessonIds.has(c.lessonId)).length;
+}
+
 function countCompleted(childId, subjectId) {
   // "games" is virtual (see lessonsFor in app.js) — completions are logged
   // under the lesson's real subject, so match by lessonId membership instead.
@@ -91,6 +96,7 @@ function checkBadges(childId) {
     if (b.rule.type === 'completeCount') unlocked = totalDone >= b.rule.count;
     if (b.rule.type === 'subjectCompleteCount') unlocked = countCompleted(childId, b.rule.subject) >= b.rule.count;
     if (b.rule.type === 'activeDayStreak') unlocked = activeDayStreak(childId) >= b.rule.days;
+    if (b.rule.type === 'moduleComplete') unlocked = countModuleCompleted(childId, b.rule.module) >= b.rule.count;
     if (unlocked) {
       earned.push(b.id);
       changed = true;

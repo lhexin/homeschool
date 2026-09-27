@@ -3,15 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Times table race</title>
+<title>Pizza fraction match</title>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; min-height: 100vh; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: #12163A; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
   h1 { color: #FFFFFF; font-size: 20px; font-weight: 600; margin: 0 0 4px; }
-  .sub { color: #9AA3D4; font-size: 14px; margin-bottom: 24px; }
-  .question { font-size: 40px; font-weight: 700; color: #FFFFFF; margin-bottom: 24px; }
+  .sub { color: #9AA3D4; font-size: 14px; margin-bottom: 20px; }
+  .pizza { width: 160px; height: 160px; border-radius: 50%; margin-bottom: 20px; border: 4px solid #FFD873; }
+  .question { font-size: 17px; font-weight: 600; color: #D6DBFF; margin-bottom: 18px; text-align: center; }
   .choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 340px; }
-  .choice { min-height: 64px; font-size: 24px; font-weight: 700; color: #FFFFFF; background: #4E8CFF; border: none; border-radius: 16px; box-shadow: 0 4px 0 #2A5FD9; }
+  .choice { min-height: 64px; font-size: 22px; font-weight: 700; color: #FFFFFF; background: #4E8CFF; border: none; border-radius: 16px; box-shadow: 0 4px 0 #2A5FD9; }
   .choice:active { transform: translateY(2px); box-shadow: 0 2px 0 #2A5FD9; }
   .hint { min-height: 22px; color: #FFD23F; font-weight: 600; margin-top: 16px; }
   .progress-dots { display: flex; gap: 6px; margin-top: 28px; }
@@ -19,29 +20,27 @@
   .dot.done { background: #FFD23F; }
   .celebrate { text-align: center; color: #FFFFFF; }
   .celebrate .star { font-size: 64px; }
-  .celebrate .time { color: #FFD23F; font-weight: 700; margin-top: 4px; }
   .done-btn { margin-top: 24px; background: #FFD23F; color: #4A2A00; border: none; border-radius: 999px; padding: 14px 32px; font-size: 17px; font-weight: 700; }
-  .timer { color: #FFD23F; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
 </style>
 </head>
 <body>
 <div id="game"></div>
 <script>
   const params = new URLSearchParams(window.location.search);
-  const table = parseInt(params.get('table') || '3', 10);
   const childId = params.get('childId') || '';
-  const lessonId = params.get('lessonId') || `times-tables-${table}`;
+  const lessonId = params.get('lessonId') || 'fraction-match-1';
   const subject = params.get('subject') || 'maths';
   const saveKey = `progress:${childId}:${lessonId}`;
-  const bestKey = `fs:besttime:${childId}:${lessonId}`;
   const TOTAL = 6;
+  const DENOMS = [2, 3, 4, 5, 6, 8];
 
-  let questions = [];
-  for (let i = 1; i <= TOTAL; i++) questions.push(i);
-  // Shuffle deterministically-ish per session
-  questions = questions.sort(() => Math.random() - 0.5);
+  function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+  function simplify(n, d) { const g = gcd(n, d) || 1; return `${n / g}/${d / g}`; }
 
-  let state = { index: 0, correct: 0, startedAt: Date.now() };
+  let questions = DENOMS.map(d => ({ d, n: Math.max(1, Math.floor(Math.random() * (d - 1)) + 1) }));
+  questions = questions.sort(() => Math.random() - 0.5).slice(0, TOTAL);
+
+  let state = { index: 0, correct: 0 };
   try {
     const saved = JSON.parse(localStorage.getItem(saveKey) || 'null');
     if (saved && typeof saved.index === 'number') state = saved;
@@ -50,37 +49,50 @@
   function save() { localStorage.setItem(saveKey, JSON.stringify(state)); }
   setInterval(save, 5000);
 
-  function bestTimeLabel() {
-    const prevBest = parseInt(localStorage.getItem(bestKey) || '0', 10);
-    return prevBest ? `Best time: ${prevBest}s` : 'Beat your time!';
+  function pizzaGradient(n, d) {
+    const stops = [];
+    const sliceDeg = 360 / d;
+    for (let i = 0; i < d; i++) {
+      const color = i < n ? '#FF6B4A' : '#FFE7B8';
+      stops.push(`${color} ${i * sliceDeg}deg ${(i + 1) * sliceDeg}deg`);
+    }
+    return `conic-gradient(${stops.join(',')})`;
   }
 
   function render() {
     const game = document.getElementById('game');
     if (state.index >= TOTAL) {
       localStorage.removeItem(saveKey);
-      const elapsedSec = Math.max(1, Math.round((Date.now() - state.startedAt) / 1000));
-      const prevBest = parseInt(localStorage.getItem(bestKey) || '0', 10);
-      const isNewBest = !prevBest || elapsedSec < prevBest;
-      if (isNewBest) localStorage.setItem(bestKey, String(elapsedSec));
       game.innerHTML = `
         <div class="celebrate">
           <div class="star">⭐</div>
-          <h1>Great job!</h1>
-          <div class="sub">You finished the ${table}x table race in ${elapsedSec}s</div>
-          <div class="time">${isNewBest ? 'New best time!' : `Best: ${prevBest}s`}</div>
+          <h1>Fraction fan!</h1>
+          <div class="sub">You matched ${TOTAL} pizza fractions</div>
           <button class="done-btn" id="doneBtn">Done</button>
         </div>
       `;
       document.getElementById('doneBtn').addEventListener('click', finish);
       return;
     }
-    const n = questions[state.index];
-    const answer = table * n;
-    const choices = new Set([answer]);
-    while (choices.size < 4) {
-      const wrong = answer + (Math.floor(Math.random() * 10) - 5);
-      if (wrong > 0 && wrong !== answer) choices.add(wrong);
+    const q = questions[state.index];
+    const answer = simplify(q.n, q.d);
+    const correctLabel = `${q.n}/${q.d}`;
+    const choices = new Set([correctLabel]);
+    // Try same-denominator distractors first (varying the numerator), but a
+    // denominator of 2 only has one valid numerator, so this can never reach
+    // 4 options alone — cap the attempts and fall back to a fixed pool of
+    // common fractions so the loop can never spin forever.
+    let attempts = 0;
+    while (choices.size < 4 && attempts < 20) {
+      const wn = Math.max(1, Math.min(q.d - 1, q.n + Math.floor(Math.random() * 3) - 1));
+      choices.add(`${wn}/${q.d}`);
+      attempts++;
+    }
+    const fallbackPool = ['1/2', '1/3', '2/3', '1/4', '3/4', '1/5', '2/5', '3/5', '4/5', '1/6', '5/6', '1/8', '3/8', '5/8', '7/8'];
+    let fallbackIdx = 0;
+    while (choices.size < 4 && fallbackIdx < fallbackPool.length) {
+      choices.add(fallbackPool[fallbackIdx]);
+      fallbackIdx++;
     }
     const shuffled = Array.from(choices).sort(() => Math.random() - 0.5);
 
@@ -88,17 +100,17 @@
     for (let i = 0; i < TOTAL; i++) dots += `<div class="dot ${i < state.index ? 'done' : ''}"></div>`;
 
     game.innerHTML = `
-      <h1>${table}x table race</h1>
+      <h1>Pizza fraction match</h1>
       <div class="sub">Question ${state.index + 1} of ${TOTAL}</div>
-      <div class="timer">${bestTimeLabel()}</div>
-      <div class="question">${table} &times; ${n} = ?</div>
+      <div class="pizza" style="background:${pizzaGradient(q.n, q.d)}"></div>
+      <div class="question">What fraction of the pizza is shaded?</div>
       <div class="choices">${shuffled.map(c => `<button class="choice" data-val="${c}">${c}</button>`).join('')}</div>
       <div class="hint" id="hint"></div>
       <div class="progress-dots">${dots}</div>
     `;
     document.querySelectorAll('.choice').forEach(btn => {
       btn.addEventListener('click', () => {
-        if (parseInt(btn.dataset.val, 10) === answer) {
+        if (btn.dataset.val === `${q.n}/${q.d}`) {
           state.index++;
           state.correct++;
           save();

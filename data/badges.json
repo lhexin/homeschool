@@ -7,5 +7,14 @@
   { "id": "prima-ballerina", "label": "Prima Ballerina", "icon": "ballet", "parentAwarded": true },
   { "id": "piano-page-turner", "label": "Page Turner", "icon": "music", "rule": { "type": "subjectCompleteCount", "subject": "piano", "count": 10 } },
   { "id": "kind-heart", "label": "Kind Heart", "icon": "heart", "parentAwarded": true },
-  { "id": "week-streak", "label": "7-Day Streak", "icon": "flame", "rule": { "type": "activeDayStreak", "days": 7 } }
+  { "id": "week-streak", "label": "7-Day Streak", "icon": "flame", "rule": { "type": "activeDayStreak", "days": 7 } },
+  { "id": "m1-place-value", "label": "Place Value Pro", "icon": "plus", "rule": { "type": "moduleComplete", "module": "m1-place-value", "count": 1 } },
+  { "id": "m2-add-subtract", "label": "Bond Builder", "icon": "plus", "rule": { "type": "moduleComplete", "module": "m2-add-subtract", "count": 1 } },
+  { "id": "m3-times-tables", "label": "Times Table Titan", "icon": "star", "rule": { "type": "moduleComplete", "module": "m3-times-tables", "count": 3 } },
+  { "id": "m4-fractions", "label": "Fraction Fan", "icon": "plus", "rule": { "type": "moduleComplete", "module": "m4-fractions", "count": 1 } },
+  { "id": "m5-money", "label": "Money Manager", "icon": "coin", "rule": { "type": "moduleComplete", "module": "m5-money", "count": 1 } },
+  { "id": "m6-time", "label": "Time Turner", "icon": "flame", "rule": { "type": "moduleComplete", "module": "m6-time", "count": 1 } },
+  { "id": "m7-measurement", "label": "Measure Master", "icon": "plus", "rule": { "type": "moduleComplete", "module": "m7-measurement", "count": 1 } },
+  { "id": "m8-shape-data", "label": "Shape Sleuth", "icon": "controller", "rule": { "type": "moduleComplete", "module": "m8-shape-data", "count": 1 } },
+  { "id": "year3-maths-champion", "label": "Year 3 Maths Champion", "icon": "star", "rule": { "type": "subjectCompleteCount", "subject": "maths", "count": 10 } }
 ]

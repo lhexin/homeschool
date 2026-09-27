@@ -9,8 +9,29 @@
     "addedOn": "2026-09-26"
   },
   {
+    "id": "place-value-1",
+    "subject": "maths",
+    "module": "m1-place-value",
+    "title": "Place value builder",
+    "forChild": ["charlie"],
+    "type": "game",
+    "gameFile": "games/place-value-builder.html",
+    "addedOn": "2026-09-27"
+  },
+  {
+    "id": "number-bonds-1",
+    "subject": "maths",
+    "module": "m2-add-subtract",
+    "title": "Number bond blitz",
+    "forChild": ["charlie"],
+    "type": "game",
+    "gameFile": "games/number-bonds.html",
+    "addedOn": "2026-09-27"
+  },
+  {
     "id": "times-tables-3",
     "subject": "maths",
+    "module": "m3-times-tables",
     "title": "3x table race",
     "forChild": ["charlie"],
     "type": "game",
@@ -20,11 +41,72 @@
   {
     "id": "times-tables-4",
     "subject": "maths",
+    "module": "m3-times-tables",
     "title": "4x table race",
     "forChild": ["charlie"],
     "type": "game",
     "gameFile": "games/times-tables.html?table=4",
     "addedOn": "2026-09-26"
+  },
+  {
+    "id": "times-tables-8",
+    "subject": "maths",
+    "module": "m3-times-tables",
+    "title": "8x table race",
+    "forChild": ["charlie"],
+    "type": "game",
+    "gameFile": "games/times-tables.html?table=8",
+    "addedOn": "2026-09-27"
+  },
+  {
+    "id": "fraction-match-1",
+    "subject": "maths",
+    "module": "m4-fractions",
+    "title": "Pizza fraction match",
+    "forChild": ["charlie"],
+    "type": "game",
+    "gameFile": "games/fraction-match.html",
+    "addedOn": "2026-09-27"
+  },
+  {
+    "id": "shop-till-1",
+    "subject": "maths",
+    "module": "m5-money",
+    "title": "Shop till change",
+    "forChild": ["charlie"],
+    "type": "game",
+    "gameFile": "games/shop-till.html",
+    "addedOn": "2026-09-27"
+  },
+  {
+    "id": "clock-racer-1",
+    "subject": "maths",
+    "module": "m6-time",
+    "title": "Clock racer",
+    "forChild": ["charlie"],
+    "type": "game",
+    "gameFile": "games/clock-racer.html",
+    "addedOn": "2026-09-27"
+  },
+  {
+    "id": "measure-build-1",
+    "subject": "maths",
+    "module": "m7-measurement",
+    "title": "Measure & build",
+    "forChild": ["charlie"],
+    "type": "game",
+    "gameFile": "games/measure-build.html",
+    "addedOn": "2026-09-27"
+  },
+  {
+    "id": "shape-angle-hunt-1",
+    "subject": "maths",
+    "module": "m8-shape-data",
+    "title": "Shape & angle hunt",
+    "forChild": ["charlie"],
+    "type": "game",
+    "gameFile": "games/shape-angle-hunt.html",
+    "addedOn": "2026-09-27"
   },
   {
     "id": "reading-cat-hat",

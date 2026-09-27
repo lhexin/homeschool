@@ -282,12 +282,18 @@ function showVideoModal(lesson, onWatched) {
   const overlay = document.createElement('div');
   overlay.className = 'celebrate-overlay';
   overlay.innerHTML = `
+    <button id="dismissVideo" aria-label="Close without marking watched"
+      style="position:absolute;top:18px;right:18px;width:40px;height:40px;border-radius:50%;
+      background:rgba(255,255,255,0.15);color:#FFFFFF;font-size:20px;line-height:1;padding:0;">&times;</button>
     <div style="width:100%;max-width:360px;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden">
       <iframe width="100%" height="100%" src="${lesson.url}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
     </div>
-    <button id="closeVideo">Done watching</button>
+    <button id="closeVideo">I watched this!</button>
   `;
   document.body.appendChild(overlay);
+  document.getElementById('dismissVideo').addEventListener('click', () => {
+    overlay.remove();
+  });
   document.getElementById('closeVideo').addEventListener('click', () => {
     overlay.remove();
     onWatched();

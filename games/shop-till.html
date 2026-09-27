@@ -3,15 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Times table race</title>
+<title>Shop till change</title>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; min-height: 100vh; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: #12163A; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
   h1 { color: #FFFFFF; font-size: 20px; font-weight: 600; margin: 0 0 4px; }
-  .sub { color: #9AA3D4; font-size: 14px; margin-bottom: 24px; }
-  .question { font-size: 40px; font-weight: 700; color: #FFFFFF; margin-bottom: 24px; }
+  .sub { color: #9AA3D4; font-size: 14px; margin-bottom: 20px; }
+  .receipt { background: #FFF6FA; color: #3D3A34; border-radius: 12px; padding: 18px 24px; width: 100%; max-width: 300px; margin-bottom: 20px; font-size: 16px; }
+  .receipt .row { display: flex; justify-content: space-between; margin: 4px 0; }
+  .receipt .total { font-weight: 700; border-top: 1px dashed #ccc; margin-top: 8px; padding-top: 8px; }
+  .question { font-size: 17px; font-weight: 600; color: #D6DBFF; margin-bottom: 18px; text-align: center; }
   .choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 340px; }
-  .choice { min-height: 64px; font-size: 24px; font-weight: 700; color: #FFFFFF; background: #4E8CFF; border: none; border-radius: 16px; box-shadow: 0 4px 0 #2A5FD9; }
+  .choice { min-height: 64px; font-size: 20px; font-weight: 700; color: #FFFFFF; background: #4E8CFF; border: none; border-radius: 16px; box-shadow: 0 4px 0 #2A5FD9; }
   .choice:active { transform: translateY(2px); box-shadow: 0 2px 0 #2A5FD9; }
   .hint { min-height: 22px; color: #FFD23F; font-weight: 600; margin-top: 16px; }
   .progress-dots { display: flex; gap: 6px; margin-top: 28px; }
@@ -19,29 +22,41 @@
   .dot.done { background: #FFD23F; }
   .celebrate { text-align: center; color: #FFFFFF; }
   .celebrate .star { font-size: 64px; }
-  .celebrate .time { color: #FFD23F; font-weight: 700; margin-top: 4px; }
   .done-btn { margin-top: 24px; background: #FFD23F; color: #4A2A00; border: none; border-radius: 999px; padding: 14px 32px; font-size: 17px; font-weight: 700; }
-  .timer { color: #FFD23F; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
 </style>
 </head>
 <body>
 <div id="game"></div>
 <script>
   const params = new URLSearchParams(window.location.search);
-  const table = parseInt(params.get('table') || '3', 10);
   const childId = params.get('childId') || '';
-  const lessonId = params.get('lessonId') || `times-tables-${table}`;
+  const lessonId = params.get('lessonId') || 'shop-till-1';
   const subject = params.get('subject') || 'maths';
   const saveKey = `progress:${childId}:${lessonId}`;
-  const bestKey = `fs:besttime:${childId}:${lessonId}`;
   const TOTAL = 6;
+  const NOTES = [200, 500, 1000]; // pence: £2, £5, £10
+
+  function randomPrice() {
+    // Prices in pence, from 20p to £8, round to nearest 5p for a friendlier game.
+    return Math.round((Math.floor(Math.random() * 780) + 20) / 5) * 5;
+  }
+
+  function fmt(pence) {
+    const pounds = Math.floor(pence / 100);
+    const p = pence % 100;
+    if (pounds === 0) return `${p}p`;
+    if (p === 0) return `£${pounds}`;
+    return `£${pounds}.${p.toString().padStart(2, '0')}`;
+  }
 
   let questions = [];
-  for (let i = 1; i <= TOTAL; i++) questions.push(i);
-  // Shuffle deterministically-ish per session
-  questions = questions.sort(() => Math.random() - 0.5);
+  for (let i = 0; i < TOTAL; i++) {
+    const price = randomPrice();
+    let paid = NOTES.find(n => n > price) || 1000;
+    questions.push({ price, paid, change: paid - price });
+  }
 
-  let state = { index: 0, correct: 0, startedAt: Date.now() };
+  let state = { index: 0, correct: 0 };
   try {
     const saved = JSON.parse(localStorage.getItem(saveKey) || 'null');
     if (saved && typeof saved.index === 'number') state = saved;
@@ -50,37 +65,26 @@
   function save() { localStorage.setItem(saveKey, JSON.stringify(state)); }
   setInterval(save, 5000);
 
-  function bestTimeLabel() {
-    const prevBest = parseInt(localStorage.getItem(bestKey) || '0', 10);
-    return prevBest ? `Best time: ${prevBest}s` : 'Beat your time!';
-  }
-
   function render() {
     const game = document.getElementById('game');
     if (state.index >= TOTAL) {
       localStorage.removeItem(saveKey);
-      const elapsedSec = Math.max(1, Math.round((Date.now() - state.startedAt) / 1000));
-      const prevBest = parseInt(localStorage.getItem(bestKey) || '0', 10);
-      const isNewBest = !prevBest || elapsedSec < prevBest;
-      if (isNewBest) localStorage.setItem(bestKey, String(elapsedSec));
       game.innerHTML = `
         <div class="celebrate">
           <div class="star">⭐</div>
-          <h1>Great job!</h1>
-          <div class="sub">You finished the ${table}x table race in ${elapsedSec}s</div>
-          <div class="time">${isNewBest ? 'New best time!' : `Best: ${prevBest}s`}</div>
+          <h1>Money manager!</h1>
+          <div class="sub">You handled ${TOTAL} tills correctly</div>
           <button class="done-btn" id="doneBtn">Done</button>
         </div>
       `;
       document.getElementById('doneBtn').addEventListener('click', finish);
       return;
     }
-    const n = questions[state.index];
-    const answer = table * n;
-    const choices = new Set([answer]);
+    const q = questions[state.index];
+    const choices = new Set([q.change]);
     while (choices.size < 4) {
-      const wrong = answer + (Math.floor(Math.random() * 10) - 5);
-      if (wrong > 0 && wrong !== answer) choices.add(wrong);
+      const wrong = Math.max(5, q.change + (Math.floor(Math.random() * 8) - 4) * 5);
+      choices.add(wrong);
     }
     const shuffled = Array.from(choices).sort(() => Math.random() - 0.5);
 
@@ -88,23 +92,27 @@
     for (let i = 0; i < TOTAL; i++) dots += `<div class="dot ${i < state.index ? 'done' : ''}"></div>`;
 
     game.innerHTML = `
-      <h1>${table}x table race</h1>
-      <div class="sub">Question ${state.index + 1} of ${TOTAL}</div>
-      <div class="timer">${bestTimeLabel()}</div>
-      <div class="question">${table} &times; ${n} = ?</div>
-      <div class="choices">${shuffled.map(c => `<button class="choice" data-val="${c}">${c}</button>`).join('')}</div>
+      <h1>Shop till</h1>
+      <div class="sub">Customer ${state.index + 1} of ${TOTAL}</div>
+      <div class="receipt">
+        <div class="row"><span>Item price</span><span>${fmt(q.price)}</span></div>
+        <div class="row"><span>Paid with</span><span>${fmt(q.paid)}</span></div>
+        <div class="row total"><span>Change due</span><span>?</span></div>
+      </div>
+      <div class="question">How much change do you give back?</div>
+      <div class="choices">${shuffled.map(c => `<button class="choice" data-val="${c}">${fmt(c)}</button>`).join('')}</div>
       <div class="hint" id="hint"></div>
       <div class="progress-dots">${dots}</div>
     `;
     document.querySelectorAll('.choice').forEach(btn => {
       btn.addEventListener('click', () => {
-        if (parseInt(btn.dataset.val, 10) === answer) {
+        if (parseInt(btn.dataset.val, 10) === q.change) {
           state.index++;
           state.correct++;
           save();
           render();
         } else {
-          document.getElementById('hint').textContent = 'Try again!';
+          document.getElementById('hint').textContent = 'Count again!';
         }
       });
     });

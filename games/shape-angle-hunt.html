@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shape & angle hunt</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: #12163A; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
+  h1 { color: #FFFFFF; font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  .sub { color: #9AA3D4; font-size: 14px; margin-bottom: 20px; }
+  .visual { margin-bottom: 18px; }
+  .bars { display: flex; align-items: flex-end; gap: 10px; height: 100px; margin-bottom: 18px; }
+  .bar-col { display: flex; flex-direction: column; align-items: center; }
+  .bar { width: 28px; background: #4E8CFF; border-radius: 4px 4px 0 0; }
+  .bar-label { color: #9AA3D4; font-size: 11px; margin-top: 4px; }
+  .question { font-size: 17px; font-weight: 600; color: #D6DBFF; margin-bottom: 18px; text-align: center; }
+  .choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 340px; }
+  .choice { min-height: 56px; font-size: 18px; font-weight: 700; color: #FFFFFF; background: #4E8CFF; border: none; border-radius: 16px; box-shadow: 0 4px 0 #2A5FD9; padding: 6px; }
+  .choice:active { transform: translateY(2px); box-shadow: 0 2px 0 #2A5FD9; }
+  .hint { min-height: 22px; color: #FFD23F; font-weight: 600; margin-top: 16px; }
+  .progress-dots { display: flex; gap: 6px; margin-top: 28px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #3A4080; }
+  .dot.done { background: #FFD23F; }
+  .celebrate { text-align: center; color: #FFFFFF; }
+  .celebrate .star { font-size: 64px; }
+  .done-btn { margin-top: 24px; background: #FFD23F; color: #4A2A00; border: none; border-radius: 999px; padding: 14px 32px; font-size: 17px; font-weight: 700; }
+</style>
+</head>
+<body>
+<div id="game"></div>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const childId = params.get('childId') || '';
+  const lessonId = params.get('lessonId') || 'shape-angle-hunt-1';
+  const subject = params.get('subject') || 'maths';
+  const saveKey = `progress:${childId}:${lessonId}`;
+  const TOTAL = 6;
+
+  const SHAPES = [
+    { name: 'Square', sides: 4, draw: '<rect x="15" y="15" width="70" height="70" fill="none" stroke="#FFFFFF" stroke-width="4"/>' },
+    { name: 'Rectangle', sides: 4, draw: '<rect x="8" y="25" width="84" height="50" fill="none" stroke="#FFFFFF" stroke-width="4"/>' },
+    { name: 'Triangle', sides: 3, draw: '<polygon points="50,10 90,85 10,85" fill="none" stroke="#FFFFFF" stroke-width="4"/>' },
+    { name: 'Pentagon', sides: 5, draw: '<polygon points="50,8 90,38 75,88 25,88 10,38" fill="none" stroke="#FFFFFF" stroke-width="4"/>' },
+    { name: 'Hexagon', sides: 6, draw: '<polygon points="30,10 70,10 92,50 70,90 30,90 8,50" fill="none" stroke="#FFFFFF" stroke-width="4"/>' },
+    { name: 'Circle', sides: 0, draw: '<circle cx="50" cy="50" r="42" fill="none" stroke="#FFFFFF" stroke-width="4"/>' }
+  ];
+
+  function shapeQuestion() {
+    const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+    return {
+      kind: 'shape',
+      visual: `<svg width="120" height="120" viewBox="0 0 100 100">${shape.draw}</svg>`,
+      question: 'What shape is this?',
+      answer: shape.name,
+      options: SHAPES.map(s => s.name)
+    };
+  }
+
+  function angleQuestion() {
+    const types = [
+      { label: 'Right angle', deg: 90 },
+      { label: 'More than a right angle', deg: 135 },
+      { label: 'Less than a right angle', deg: 45 }
+    ];
+    const t = types[Math.floor(Math.random() * types.length)];
+    const rad = t.deg * Math.PI / 180;
+    const x2 = 50 + 40 * Math.cos(-rad);
+    const y2 = 50 + 40 * Math.sin(-rad);
+    return {
+      kind: 'angle',
+      visual: `<svg width="120" height="120" viewBox="0 0 100 100">
+        <line x1="50" y1="50" x2="90" y2="50" stroke="#FFD23F" stroke-width="4"/>
+        <line x1="50" y1="50" x2="${x2}" y2="${y2}" stroke="#FFD23F" stroke-width="4"/>
+      </svg>`,
+      question: 'What kind of angle is shaded?',
+      answer: t.label,
+      options: types.map(t2 => t2.label)
+    };
+  }
+
+  function chartQuestion() {
+    const labels = ['Apples', 'Bananas', 'Grapes'];
+    const values = labels.map(() => Math.floor(Math.random() * 8) + 2);
+    const maxIdx = values.indexOf(Math.max(...values));
+    let bars = '';
+    labels.forEach((l, i) => {
+      bars += `<div class="bar-col"><div class="bar" style="height:${values[i] * 9}px"></div><div class="bar-label">${l}</div></div>`;
+    });
+    return {
+      kind: 'chart',
+      visual: `<div class="bars">${bars}</div>`,
+      question: 'Which was picked the most?',
+      answer: labels[maxIdx],
+      options: labels
+    };
+  }
+
+  const generators = [shapeQuestion, shapeQuestion, angleQuestion, angleQuestion, chartQuestion, chartQuestion];
+  let questions = generators.map(fn => fn());
+
+  let state = { index: 0, correct: 0 };
+  try {
+    const saved = JSON.parse(localStorage.getItem(saveKey) || 'null');
+    if (saved && typeof saved.index === 'number') state = saved;
+  } catch (e) {}
+
+  function save() { localStorage.setItem(saveKey, JSON.stringify(state)); }
+  setInterval(save, 5000);
+
+  function render() {
+    const game = document.getElementById('game');
+    if (state.index >= TOTAL) {
+      localStorage.removeItem(saveKey);
+      game.innerHTML = `
+        <div class="celebrate">
+          <div class="star">⭐</div>
+          <h1>Shape sleuth!</h1>
+          <div class="sub">You solved ${TOTAL} shape, angle & data puzzles</div>
+          <button class="done-btn" id="doneBtn">Done</button>
+        </div>
+      `;
+      document.getElementById('doneBtn').addEventListener('click', finish);
+      return;
+    }
+    const q = questions[state.index];
+    const optionPool = new Set(q.options);
+    optionPool.delete(q.answer);
+    const distractors = Array.from(optionPool).sort(() => Math.random() - 0.5).slice(0, 3);
+    const shuffled = [q.answer, ...distractors].sort(() => Math.random() - 0.5);
+
+    let dots = '';
+    for (let i = 0; i < TOTAL; i++) dots += `<div class="dot ${i < state.index ? 'done' : ''}"></div>`;
+
+    game.innerHTML = `
+      <h1>Shape & angle hunt</h1>
+      <div class="sub">Question ${state.index + 1} of ${TOTAL}</div>
+      <div class="visual">${q.visual}</div>
+      <div class="question">${q.question}</div>
+      <div class="choices">${shuffled.map(c => `<button class="choice" data-val="${c}">${c}</button>`).join('')}</div>
+      <div class="hint" id="hint"></div>
+      <div class="progress-dots">${dots}</div>
+    `;
+    document.querySelectorAll('.choice').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.val === q.answer) {
+          state.index++;
+          state.correct++;
+          save();
+          render();
+        } else {
+          document.getElementById('hint').textContent = 'Try again!';
+        }
+      });
+    });
+  }
+
+  function finish() {
+    const payload = { type: 'activityComplete', id: lessonId, childId, subject, score: state.correct };
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(payload, '*');
+    } else {
+      localStorage.setItem('fs:pendingComplete', JSON.stringify({ id: lessonId, childId, subject }));
+      window.location.href = `../index.html#/kid/${childId}`;
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>

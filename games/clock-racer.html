@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Times table race</title>
+<title>Clock racer</title>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; min-height: 100vh; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: #12163A; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
   h1 { color: #FFFFFF; font-size: 20px; font-weight: 600; margin: 0 0 4px; }
-  .sub { color: #9AA3D4; font-size: 14px; margin-bottom: 24px; }
-  .question { font-size: 40px; font-weight: 700; color: #FFFFFF; margin-bottom: 24px; }
+  .sub { color: #9AA3D4; font-size: 14px; margin-bottom: 20px; }
+  .question { font-size: 17px; font-weight: 600; color: #D6DBFF; margin: 16px 0; text-align: center; }
   .choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 340px; }
-  .choice { min-height: 64px; font-size: 24px; font-weight: 700; color: #FFFFFF; background: #4E8CFF; border: none; border-radius: 16px; box-shadow: 0 4px 0 #2A5FD9; }
+  .choice { min-height: 56px; font-size: 19px; font-weight: 700; color: #FFFFFF; background: #4E8CFF; border: none; border-radius: 16px; box-shadow: 0 4px 0 #2A5FD9; }
   .choice:active { transform: translateY(2px); box-shadow: 0 2px 0 #2A5FD9; }
   .hint { min-height: 22px; color: #FFD23F; font-weight: 600; margin-top: 16px; }
   .progress-dots { display: flex; gap: 6px; margin-top: 28px; }
@@ -19,29 +19,65 @@
   .dot.done { background: #FFD23F; }
   .celebrate { text-align: center; color: #FFFFFF; }
   .celebrate .star { font-size: 64px; }
-  .celebrate .time { color: #FFD23F; font-weight: 700; margin-top: 4px; }
   .done-btn { margin-top: 24px; background: #FFD23F; color: #4A2A00; border: none; border-radius: 999px; padding: 14px 32px; font-size: 17px; font-weight: 700; }
-  .timer { color: #FFD23F; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
 </style>
 </head>
 <body>
 <div id="game"></div>
 <script>
   const params = new URLSearchParams(window.location.search);
-  const table = parseInt(params.get('table') || '3', 10);
   const childId = params.get('childId') || '';
-  const lessonId = params.get('lessonId') || `times-tables-${table}`;
+  const lessonId = params.get('lessonId') || 'clock-racer-1';
   const subject = params.get('subject') || 'maths';
   const saveKey = `progress:${childId}:${lessonId}`;
-  const bestKey = `fs:besttime:${childId}:${lessonId}`;
   const TOTAL = 6;
+  // First few rounds use easy o'clock/half/quarter times, later rounds use 5-minute intervals.
+  const EASY_MINUTES = [0, 15, 30, 45];
+
+  function randomTime(round) {
+    const hour = Math.floor(Math.random() * 12) + 1;
+    const minute = round < 3
+      ? EASY_MINUTES[Math.floor(Math.random() * EASY_MINUTES.length)]
+      : Math.floor(Math.random() * 12) * 5;
+    return { hour, minute };
+  }
+
+  function timeLabel(t) {
+    const h = t.hour;
+    if (t.minute === 0) return `${h} o'clock`;
+    if (t.minute === 15) return `Quarter past ${h}`;
+    if (t.minute === 30) return `Half past ${h}`;
+    if (t.minute === 45) { const next = h === 12 ? 1 : h + 1; return `Quarter to ${next}`; }
+    return `${h}:${t.minute.toString().padStart(2, '0')}`;
+  }
+
+  function clockFace(t) {
+    const minuteDeg = t.minute * 6;
+    const hourDeg = (t.hour % 12) * 30 + t.minute * 0.5;
+    let ticks = '';
+    for (let i = 0; i < 12; i++) {
+      const a = i * 30;
+      const x1 = 50 + 42 * Math.sin(a * Math.PI / 180);
+      const y1 = 50 - 42 * Math.cos(a * Math.PI / 180);
+      const x2 = 50 + 46 * Math.sin(a * Math.PI / 180);
+      const y2 = 50 - 46 * Math.cos(a * Math.PI / 180);
+      ticks += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#12163A" stroke-width="2"/>`;
+    }
+    return `
+      <svg width="180" height="180" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="48" fill="#FFFFFF" stroke="#4E8CFF" stroke-width="3"/>
+        ${ticks}
+        <line x1="50" y1="50" x2="${50 + 24 * Math.sin(hourDeg * Math.PI / 180)}" y2="${50 - 24 * Math.cos(hourDeg * Math.PI / 180)}" stroke="#12163A" stroke-width="4" stroke-linecap="round"/>
+        <line x1="50" y1="50" x2="${50 + 36 * Math.sin(minuteDeg * Math.PI / 180)}" y2="${50 - 36 * Math.cos(minuteDeg * Math.PI / 180)}" stroke="#E6483C" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="50" cy="50" r="3" fill="#12163A"/>
+      </svg>
+    `;
+  }
 
   let questions = [];
-  for (let i = 1; i <= TOTAL; i++) questions.push(i);
-  // Shuffle deterministically-ish per session
-  questions = questions.sort(() => Math.random() - 0.5);
+  for (let i = 0; i < TOTAL; i++) questions.push(randomTime(i));
 
-  let state = { index: 0, correct: 0, startedAt: Date.now() };
+  let state = { index: 0, correct: 0 };
   try {
     const saved = JSON.parse(localStorage.getItem(saveKey) || 'null');
     if (saved && typeof saved.index === 'number') state = saved;
@@ -50,61 +86,52 @@
   function save() { localStorage.setItem(saveKey, JSON.stringify(state)); }
   setInterval(save, 5000);
 
-  function bestTimeLabel() {
-    const prevBest = parseInt(localStorage.getItem(bestKey) || '0', 10);
-    return prevBest ? `Best time: ${prevBest}s` : 'Beat your time!';
-  }
-
   function render() {
     const game = document.getElementById('game');
     if (state.index >= TOTAL) {
       localStorage.removeItem(saveKey);
-      const elapsedSec = Math.max(1, Math.round((Date.now() - state.startedAt) / 1000));
-      const prevBest = parseInt(localStorage.getItem(bestKey) || '0', 10);
-      const isNewBest = !prevBest || elapsedSec < prevBest;
-      if (isNewBest) localStorage.setItem(bestKey, String(elapsedSec));
       game.innerHTML = `
         <div class="celebrate">
           <div class="star">⭐</div>
-          <h1>Great job!</h1>
-          <div class="sub">You finished the ${table}x table race in ${elapsedSec}s</div>
-          <div class="time">${isNewBest ? 'New best time!' : `Best: ${prevBest}s`}</div>
+          <h1>Time turner!</h1>
+          <div class="sub">You read ${TOTAL} clocks correctly</div>
           <button class="done-btn" id="doneBtn">Done</button>
         </div>
       `;
       document.getElementById('doneBtn').addEventListener('click', finish);
       return;
     }
-    const n = questions[state.index];
-    const answer = table * n;
-    const choices = new Set([answer]);
-    while (choices.size < 4) {
-      const wrong = answer + (Math.floor(Math.random() * 10) - 5);
-      if (wrong > 0 && wrong !== answer) choices.add(wrong);
+    const q = questions[state.index];
+    const answer = timeLabel(q);
+    const choiceSet = new Set([answer]);
+    while (choiceSet.size < 4) {
+      const wrongTime = randomTime(state.index);
+      const wrongLabel = timeLabel(wrongTime);
+      if (wrongLabel !== answer) choiceSet.add(wrongLabel);
     }
-    const shuffled = Array.from(choices).sort(() => Math.random() - 0.5);
+    const shuffled = Array.from(choiceSet).sort(() => Math.random() - 0.5);
 
     let dots = '';
     for (let i = 0; i < TOTAL; i++) dots += `<div class="dot ${i < state.index ? 'done' : ''}"></div>`;
 
     game.innerHTML = `
-      <h1>${table}x table race</h1>
+      <h1>Clock racer</h1>
       <div class="sub">Question ${state.index + 1} of ${TOTAL}</div>
-      <div class="timer">${bestTimeLabel()}</div>
-      <div class="question">${table} &times; ${n} = ?</div>
+      ${clockFace(q)}
+      <div class="question">What time does the clock show?</div>
       <div class="choices">${shuffled.map(c => `<button class="choice" data-val="${c}">${c}</button>`).join('')}</div>
       <div class="hint" id="hint"></div>
       <div class="progress-dots">${dots}</div>
     `;
     document.querySelectorAll('.choice').forEach(btn => {
       btn.addEventListener('click', () => {
-        if (parseInt(btn.dataset.val, 10) === answer) {
+        if (btn.dataset.val === answer) {
           state.index++;
           state.correct++;
           save();
           render();
         } else {
-          document.getElementById('hint').textContent = 'Try again!';
+          document.getElementById('hint').textContent = 'Look again!';
         }
       });
     });

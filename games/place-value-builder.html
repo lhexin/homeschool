@@ -3,13 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Times table race</title>
+<title>Place value builder</title>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; min-height: 100vh; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background: #12163A; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
   h1 { color: #FFFFFF; font-size: 20px; font-weight: 600; margin: 0 0 4px; }
-  .sub { color: #9AA3D4; font-size: 14px; margin-bottom: 24px; }
-  .question { font-size: 40px; font-weight: 700; color: #FFFFFF; margin-bottom: 24px; }
+  .sub { color: #9AA3D4; font-size: 14px; margin-bottom: 20px; }
+  .blocks { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; justify-content: center; max-width: 340px; }
+  .block { width: 22px; height: 22px; border-radius: 4px; }
+  .block.h { background: #E6483C; }
+  .block.t { background: #FFD23F; width: 10px; }
+  .block.o { background: #4E8CFF; width: 8px; height: 8px; align-self: flex-end; }
+  .number-display { font-size: 44px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px; }
+  .question { font-size: 18px; font-weight: 600; color: #D6DBFF; margin-bottom: 20px; text-align: center; }
   .choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 340px; }
   .choice { min-height: 64px; font-size: 24px; font-weight: 700; color: #FFFFFF; background: #4E8CFF; border: none; border-radius: 16px; box-shadow: 0 4px 0 #2A5FD9; }
   .choice:active { transform: translateY(2px); box-shadow: 0 2px 0 #2A5FD9; }
@@ -19,29 +25,33 @@
   .dot.done { background: #FFD23F; }
   .celebrate { text-align: center; color: #FFFFFF; }
   .celebrate .star { font-size: 64px; }
-  .celebrate .time { color: #FFD23F; font-weight: 700; margin-top: 4px; }
   .done-btn { margin-top: 24px; background: #FFD23F; color: #4A2A00; border: none; border-radius: 999px; padding: 14px 32px; font-size: 17px; font-weight: 700; }
-  .timer { color: #FFD23F; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
 </style>
 </head>
 <body>
 <div id="game"></div>
 <script>
   const params = new URLSearchParams(window.location.search);
-  const table = parseInt(params.get('table') || '3', 10);
   const childId = params.get('childId') || '';
-  const lessonId = params.get('lessonId') || `times-tables-${table}`;
+  const lessonId = params.get('lessonId') || 'place-value-1';
   const subject = params.get('subject') || 'maths';
   const saveKey = `progress:${childId}:${lessonId}`;
-  const bestKey = `fs:besttime:${childId}:${lessonId}`;
   const TOTAL = 6;
 
-  let questions = [];
-  for (let i = 1; i <= TOTAL; i++) questions.push(i);
-  // Shuffle deterministically-ish per session
-  questions = questions.sort(() => Math.random() - 0.5);
+  function randomNumber() { return Math.floor(Math.random() * 900) + 100; } // 100-999
 
-  let state = { index: 0, correct: 0, startedAt: Date.now() };
+  function digits(n) {
+    return { h: Math.floor(n / 100), t: Math.floor((n % 100) / 10), o: n % 10 };
+  }
+
+  let questions = [];
+  for (let i = 0; i < TOTAL; i++) {
+    const n = randomNumber();
+    const place = ['h', 't', 'o'][i % 3];
+    questions.push({ n, place });
+  }
+
+  let state = { index: 0, correct: 0 };
   try {
     const saved = JSON.parse(localStorage.getItem(saveKey) || 'null');
     if (saved && typeof saved.index === 'number') state = saved;
@@ -50,37 +60,38 @@
   function save() { localStorage.setItem(saveKey, JSON.stringify(state)); }
   setInterval(save, 5000);
 
-  function bestTimeLabel() {
-    const prevBest = parseInt(localStorage.getItem(bestKey) || '0', 10);
-    return prevBest ? `Best time: ${prevBest}s` : 'Beat your time!';
+  function blockDisplay(n) {
+    const d = digits(n);
+    let html = '<div class="blocks">';
+    for (let i = 0; i < d.h; i++) html += '<div class="block h"></div>';
+    for (let i = 0; i < d.t; i++) html += '<div class="block t"></div>';
+    for (let i = 0; i < d.o; i++) html += '<div class="block o"></div>';
+    return html + '</div>';
   }
 
   function render() {
     const game = document.getElementById('game');
     if (state.index >= TOTAL) {
       localStorage.removeItem(saveKey);
-      const elapsedSec = Math.max(1, Math.round((Date.now() - state.startedAt) / 1000));
-      const prevBest = parseInt(localStorage.getItem(bestKey) || '0', 10);
-      const isNewBest = !prevBest || elapsedSec < prevBest;
-      if (isNewBest) localStorage.setItem(bestKey, String(elapsedSec));
       game.innerHTML = `
         <div class="celebrate">
           <div class="star">⭐</div>
-          <h1>Great job!</h1>
-          <div class="sub">You finished the ${table}x table race in ${elapsedSec}s</div>
-          <div class="time">${isNewBest ? 'New best time!' : `Best: ${prevBest}s`}</div>
+          <h1>Place value pro!</h1>
+          <div class="sub">You built ${TOTAL} numbers correctly</div>
           <button class="done-btn" id="doneBtn">Done</button>
         </div>
       `;
       document.getElementById('doneBtn').addEventListener('click', finish);
       return;
     }
-    const n = questions[state.index];
-    const answer = table * n;
+    const q = questions[state.index];
+    const d = digits(q.n);
+    const answer = d[q.place];
+    const placeLabel = { h: 'hundreds', t: 'tens', o: 'ones' }[q.place];
     const choices = new Set([answer]);
     while (choices.size < 4) {
-      const wrong = answer + (Math.floor(Math.random() * 10) - 5);
-      if (wrong > 0 && wrong !== answer) choices.add(wrong);
+      const wrong = Math.max(0, Math.min(9, answer + Math.floor(Math.random() * 7) - 3));
+      choices.add(wrong);
     }
     const shuffled = Array.from(choices).sort(() => Math.random() - 0.5);
 
@@ -88,10 +99,11 @@
     for (let i = 0; i < TOTAL; i++) dots += `<div class="dot ${i < state.index ? 'done' : ''}"></div>`;
 
     game.innerHTML = `
-      <h1>${table}x table race</h1>
+      <h1>Place value builder</h1>
       <div class="sub">Question ${state.index + 1} of ${TOTAL}</div>
-      <div class="timer">${bestTimeLabel()}</div>
-      <div class="question">${table} &times; ${n} = ?</div>
+      <div class="number-display">${q.n}</div>
+      ${blockDisplay(q.n)}
+      <div class="question">How many <strong>${placeLabel}</strong> are in ${q.n}?</div>
       <div class="choices">${shuffled.map(c => `<button class="choice" data-val="${c}">${c}</button>`).join('')}</div>
       <div class="hint" id="hint"></div>
       <div class="progress-dots">${dots}</div>
