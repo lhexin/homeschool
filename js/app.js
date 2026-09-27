@@ -299,7 +299,6 @@ function showVideoModal(lesson, onWatched) {
     onWatched();
   });
 }
-
 function renderParentDashboard() {
   document.body.className = '';
   let html = `<div class="parent-view">
